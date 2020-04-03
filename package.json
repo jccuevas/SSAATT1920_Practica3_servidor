@@ -1,8 +1,18 @@
 {
     "name": "SSAATT1920_Practica3_servidor",
     "version": "1.0.0",
-    "keywords": ["util", "functional", "server", "client", "browser"],
+    "keywords": [
+        "util",
+        "functional",
+        "server",
+        "client",
+        "browser"
+    ],
     "author": "everm",
     "contributors": [],
-    "dependencies": {}
+    "dependencies": {
+        "express": "4.17.1",
+        "mongodb": "^3.5.4",
+        "mongoose": "5.9.7"
+    }
 }
