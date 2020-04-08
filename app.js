@@ -1,33 +1,27 @@
 /* 
  * Servidor para la práctica 3
  */
-var http = require('http');
-var express = require('express');
-var fs = require('fs');
-var app = express();
-var path = require('path');
-var path = require('mongoose');
+const http = require('http');
+const express = require('express');
+const fs = require('fs');
+const app = express();
+const path = require('path');
+const mongoose = require('mongoose');
 const {parse} = require('querystring');
-
-
-var MongoClient = require('mongodb').MongoClient;
-var ObjectID = require('mongodb').ObjectID;//Para poder emplear los objetos ID para referenciar documentos mongo
+const MongoClient = require('mongodb').MongoClient;
+const ObjectID = require('mongodb').ObjectID; //Para poder emplear los objetos ID para referenciar documentos mongo
 
 var url = "mongodb://localhost:27017/examenes";
-
-
+mongoose.connect('mongodb://localhost:27017/examenes', {useNewUrlParser: true, useUnifiedTopology: true});
+const RepositorySchema = mongoose.model('repository', {user: String, name: String});
 var router = new express.Router();
-
-const DEFAULT_PORT = 8083;//Puerto del servidor por defecto
-var PORT = DEFAULT_PORT;//Para poder actualizarla por los argumentos del programa.
+const DEFAULT_PORT = 8084; //Puerto del servidor por defecto
+var PORT = DEFAULT_PORT; //Para poder actualizarla por los argumentos del programa.
 
 
 //Ruta a los recursos estáticos, normalmente CSS o html sin personalizar
 app.use(express.static(__dirname + '/public'));
 app.use(router);
-
-
-
 /*
  * Para soportar CORS en todo tipo de métodos
  */
@@ -35,7 +29,7 @@ app.use(router);
 app.use((req, res, next) => {
 
 //CORS
-    console.log("Petición entrante:" + req.method + " " + req.path);
+    console.log("[SERVIDOR] Petición entrante:" + req.method + " " + req.path);
     res.header("Access-Control-Allow-Origin", "*"); //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
     res.header("Access-Control-Allow-Headers", "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method");
     res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
@@ -43,17 +37,13 @@ app.use((req, res, next) => {
     // authorized headers for preflight requests
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();
-
     app.options('*', (req, res) => {
-        console.log("Petición OPTIONS");
+        console.log("[SERVIDOR] Petición OPTIONS");
         // allowed XHR methods  
         res.header('Access-Control-Allow-Methods', 'GET, PATCH, PUT, POST, DELETE, OPTIONS');
-
         res.send();
     });
 });
-
-
 app.get("/test", function (req, res) {
     fs.readFile('public/examen.json', 'utf8', function (err, data) {
 //        console.log(data);
@@ -70,7 +60,6 @@ app.get("/test", function (req, res) {
         res.end(data);
     });
 });
-
 app.get('/test/:name', function (req, res, next) {
     var options = {
         root: path.join(__dirname, 'public'),
@@ -80,7 +69,6 @@ app.get('/test/:name', function (req, res, next) {
             'x-sent': true
         }
     };
-
     var fileName = "examen_" + req.params.name + ".json";
     res.sendFile(fileName, options, function (err) {
         if (err) {
@@ -92,7 +80,6 @@ app.get('/test/:name', function (req, res, next) {
     });
 }
 );
-
 /**
  * Los datos se esperan en JSON
  */
@@ -134,7 +121,6 @@ app.post("/login", function (req, res) {
         res.end(body);
     });
 });
-
 app.route("/repository")
         .put(function (req, res) {
             console.log("PUT /repository");
@@ -144,13 +130,13 @@ app.route("/repository")
             });
             req.on('end', function () {
 
-                try {
-                    let repository = JSON.parse(body);
-
-                    console.log("PUT /repository data: " + JSON.stringify(repository));
-                    if (checkRepository(repository)) {
-                        if (newRepository(repository)) {
-                            console.log("200 PUT /repository");
+//                try {
+                let repository = JSON.parse(body);
+                console.log("PUT /repository data: " + JSON.stringify(repository));
+                const rep = new RepositorySchema(repository);
+                rep.save()
+                        .then(() => {
+                            console.log("200 PUT /repository Añadido: " + JSON.stringify(repository));
                             res.writeHead(200, {
                                 'Content-Type': 'application/x-www-form-urlencoded',
                                 'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing) 
@@ -158,83 +144,77 @@ app.route("/repository")
                                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
                                 "Allow": "GET, POST, PUT, DELETE"
                             });
-                        } else {
-                            console.log("403 PUT /repository");
-                            res.writeHead(403, {//Acceso denegado
+                            res.end(body);
+                        })
+                        .catch((error) => {
+                            console.log("500 PUT /repository ERROR: " + error.toString());
+                            res.writeHead(500, {
                                 'Content-Type': 'application/x-www-form-urlencoded',
-                                'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
+                                'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing) 
                                 "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
                                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
                                 "Allow": "GET, POST, PUT, DELETE"
                             });
-                        }
-                    } else {
-                        console.log("400 PUT /repository");
-                        res.writeHead(400, {//Acceso denegado
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
-                            "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
-                            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
-                            "Allow": "GET, POST, PUT, DELETE"
+                            res.end(body);
                         });
-                    }
-                } catch (error) {
-                    if (error.name == "SyntaxError") {
-                        console.log("400 PUT /repository");
-                        res.writeHead(400, {//Acceso denegado
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
-                            "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
-                            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
-                            "Allow": "GET, POST, PUT, DELETE"
-                        });
-                    } else {
-                        console.log("200 PUT /repository");
-                        error.writeHead(500, {//Error no especificado
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
-                            "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
-                            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
-                            "Allow": "GET, POST, PUT, DELETE"
-                        });
-                    }
-                }
-                res.end(body);
             });
-        })
+        }
+        )
         .get(function (request, response) {
             console.log("GET /repository");
-            MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, db) {
-                let repositories = "[";
-                if (err) {
-                    throw err;
-                }
-                var dbo = db.db("examenes");
-                dbo.collection("repository").find({}).toArray(function (err, result) {
-                    if (err) {
-                        throw err;
-                    }
-
-                    repositories = JSON.stringify(result);
-                    console.log("Listado: " + repositories);
-                    db.close();
-                    console.log("200 GET /repository");
-                    response.writeHead(200, {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*' //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
+            //var query = RepositorySchema.find({}, null, {limit: 5});
+            var query = RepositorySchema.find({}, null, {limit: 5});
+            query.exec()
+                    .then((result) => {
+                        repositories = JSON.stringify(result);
+                        console.log("GET /repository Listado: " + repositories);
+                        console.log("200 GET /repository");
+                        response.writeHead(200, {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*' //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
+                        });
+                        response.end(repositories);
+                    })
+                    .catch((error) => {
+                        console.log("500 GET /repository Listado: " + error.toString());
+                        response.writeHead(500, {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*' //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
+                        });
+                        response.end();
                     });
-
-                    response.end(repositories);
-                });
-            });
-        });
-
-
+//            MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, db) {
+//                let repositories = "[";
+//                if (err) {
+//                    throw err;
+//                }
+//                var dbo = db.db("examenes");
+//                
+//                dbo.collection("repositories").find({}).toArray(function (err, result) {
+//                    if (err) {
+//                        throw err;
+//                    }
+//
+//                    repositories = JSON.stringify(result);
+//                    console.log("Listado: " + repositories);
+//                    db.close();
+//                    console.log("200 GET /repository");
+//                    response.writeHead(200, {
+//                        'Content-Type': 'application/json',
+//                        'Access-Control-Allow-Origin': '*' //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
+//                    });
+//
+//                    response.end(repositories);
+//                });
+//        });
+        }
+        );
 app.route("/repository/:id")
         .delete(function (request, response) {
             console.log("DELETE /repository/" + request.params.id);
             MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, db) {
                 if (err) {
+                    console.log("500 DELETE /repository/" + request.params.id);
                     response.writeHead(500, {
                         'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
                         "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
@@ -243,30 +223,29 @@ app.route("/repository/:id")
                     });
                     response.end();
                 }
+
                 var dbo = db.db("examenes");
-
                 var postId = new ObjectID(request.params.id);
-
-                dbo.collection("repository").deleteOne({"_id": postId}, function (err, obj) {
+                dbo.collection("repositories").deleteOne({"_id": postId}, function (err, obj) {
                     if (err) {
                         db.close();
+                        console.log("404 DELETE /repository/" + request.params.id);
                         response.writeHead(404, {
                             'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
                             "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
                             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
                             "Allow": "GET, POST, PUT, DELETE"
                         });
-
                     } else {
                         console.log("Deleted result: " + JSON.stringify(obj.result));
                         db.close();
+                        console.log("200 DELETE /repository/" + request.params.id);
                         response.writeHead(200, {
                             'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
                             "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
                             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
                             "Allow": "GET, POST, PUT, DELETE"
                         });
-
                     }
                     response.end();
                 });
@@ -285,36 +264,40 @@ app.route("/repository/:id")
                         "Allow": "GET, POST, PUT, DELETE"
                     });
                     response.end();
-                }
-                var dbo = db.db("examenes");
+                } else {
+                    var dbo = db.db("examenes");
+                    dbo.collection("repositories").find({"user": request.params.id}).toArray(function (err, result) {
+                        if (err) {
+                            console.log("404 GET /repository/");
+                            response.writeHead(404, {
+                                'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
+                                "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
+                                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
+                                "Allow": "GET, POST, PUT, DELETE"
+                            });
+                            response.end();
+                        } else {
 
-                dbo.collection("repository").find({"user": request.params.id}).toArray(function (err, result) {
-                    if (err) {
-                        console.log("404 GET /repository/");
-                        response.writeHead(404, {
-                            'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
-                            "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
-                            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
-                            "Allow": "GET, POST, PUT, DELETE"
-                        });
-                        response.end();
-                    }
-
-                    repositories = JSON.stringify(result);
-                    console.log("Listado: " + repositories);
-                    db.close();
-                    console.log("200 GET /repository/");
-                    response.writeHead(200, {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
-                        "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
-                        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
-                        "Allow": "GET, POST, PUT, DELETE"
+                            repositories = JSON.stringify(result);
+                            console.log("Listado: " + repositories);
+                            db.close();
+                            console.log("200 GET /repository/");
+                            response.writeHead(200, {
+                                'Content-Type': 'application/json',
+                                'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
+                                "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
+                                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
+                                "Allow": "GET, POST, PUT, DELETE"
+                            });
+                            response.end(repositories);
+                        }
                     });
-                    response.end(repositories);
-                });
+                }
             });
         });
+
+
+
 app.route("/question")
         .put(function (req, res) {
             console.log("PUT /question");
@@ -339,19 +322,20 @@ app.route("/question")
                                     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
                                     "Allow": "GET, POST, PUT, DELETE"
                                 });
+                                res.end(null);
+                            } else {
+                                res.writeHead(200, {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing) 
+                                    "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
+                                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
+                                    "Allow": "GET, POST, PUT, DELETE"
+
+                                });
                                 res.end(body);
+                                console.log("1 question inserted: " + body);
+                                db.close();
                             }
-                            res.writeHead(200, {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                                'Access-Control-Allow-Origin': '*', //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing) 
-                                "Access-Control-Allow-Headers": "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method",
-                                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
-                                "Allow": "GET, POST, PUT, DELETE"
-
-                            });
-
-                            console.log("1 question inserted: " + body);
-                            db.close();
                         });
                     });
                 } catch (error) {
@@ -363,10 +347,10 @@ app.route("/question")
                         "Allow": "GET, POST, PUT, DELETE"
 
                     });
+                    res.end(null);
                 }
-                res.end(body);
-            });
 
+            });
         })
         .get(function (request, response) {
             console.log("GET /question");
@@ -407,7 +391,6 @@ let model_repository = {
     "user": "",
     "name": ""
 };
-
 function checkRepository(data) {
     for (let item in model_repository) {
         if (data[item] === undefined)
@@ -439,7 +422,7 @@ function addRepository(data) {
         if (err)
             throw err;
         var dbo = db.db("examenes");
-        dbo.collection("repository").insertOne(data, function (err, res) {
+        dbo.collection("repositories").insertOne(data, function (err, res) {
             if (err)
                 throw err;
             console.log("1 document inserted: " + JSON.stringify(data));
@@ -455,7 +438,7 @@ function getAllRepositories() {
         if (err)
             throw err;
         var dbo = db.db("examenes");
-        dbo.collection("repository").find({}).toArray(function (err, result) {
+        dbo.collection("repositories").find({}).toArray(function (err, result) {
             if (err)
                 throw err;
             repositories = JSON.stringify(result);
@@ -484,7 +467,6 @@ require('dns').lookup(require('os').hostname(), function (err, add, fam) {
         console.log(`Servidor corriendo en http://${add}:${PORT}`);
     });
 });
-
 //app.listen(PORT,add.toString());
 
 
