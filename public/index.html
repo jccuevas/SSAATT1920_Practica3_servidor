@@ -1,16 +1,485 @@
 <!DOCTYPE html>
 <!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
+Práctica 2. 
+Servicios y Aplicaciones Telemáticas
+TITULACIÓN: Grado en Ingeniería de tecnologías de telecomunicación (14312020)
+TITULACIÓN: Doble Grado Ing. de tecnologías de la telecomunicación e Ing. telemática (15212007)
+TITULACIÓN: Grado en Ingeniería telemática (14512016)
+CENTRO: ESCUELA POLITÉCNICA SUPERIOR (LINARES)
+CURSO ACADÉMICO: 2019-2020
+
+Autor: Juan Carlos Cuevas Martínez
+
+
 -->
 <html>
     <head>
-        <title>TODO supply a title</title>
+        <title>Práctica 2. Aplicación web cliente básica</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="stylesheets/normalize.css" type="text/css">
+        <link rel="stylesheet" href="stylesheets/estilos.css" type="text/css">
+        <script>
+            //URL configuration
+            const URL = ""; //Página en el servidor NODE.js
+        </script>
     </head>
     <body>
-        <div>TODO write content</div>
+        <header><h1>Práctica 2. Aplicación web cliente básica</h1></header>
+        <nav>
+            <ul>
+                <li><a href="#" onclick="showLogin()">Login</a></li>
+                <li class="oculto"><a href="#" onclick="showRepository()">Crear repositorio</a></li>
+                <li class="oculto"><a href="#" onclick="showQuestion()">Nueva pregunta</a></li>
+                <li class="oculto"><a href="#" onclick="showList()">Listar repositorios</a></li>
+                <li class="about"><a class="menu" href="#" onclick="showAbout()">Acerca de</a></li>
+            </ul><br>
+        </nav>
+
+        <main>
+            <section id="login">
+                <h2 class="test_title">Login</h2>
+                <aside>
+                    <p>Introduzca su usuario y su clave en el formulario. Si las credenciales son correctas le aparecerán las nuevas opciones.</p>
+                </aside>
+                <article>
+                    <div id="login_form">
+                        <h3>Introduzca sus credenciales</h3>
+                        <form action="#" name="login">
+                            <label>Usuario </label><input class="login" type="text" name="login" value="usuario" required><br>
+                            <label>Clave </label><input class="login" type="password" name="password" value="12345" required><br>
+                        </form>
+                    </div>
+                    <button class="submit" id="login_button">Entrar</button>
+                </article>
+            </section>
+            <section class="oculto" id="question">
+                <h2 class="test_title">Añadir pregunta</h2>
+                <aside>
+                    <p>Con este formulario podrá introducir los datos de una nueva pregunta tipo test.</p>
+                </aside>
+                <article>
+                    <h3>Nueva pregunta</h3>
+                    <form action="#" name="question" id="question_form">
+                        <label for="q_title">Título: </label><input id="q_title" type="text" name="title"><br>
+                        <label for="q_repository">Repositorio: </label><input id="q_repository" type="text" name="repository" value="default"><br>
+                        <label for="q_description">Enunciado: </label><textarea id="q_description" cols="20" rows="4" name="description">Escriba aquí el enunciado de la pregunta</textarea><br>
+                        <label for="response_1">Respuesta 1: </label><input id="response_1" type="text" name="response_1">
+                        <div id="div_1">
+                            <label for="value_1">Puntos: </label><input id="value_1" type="number" name="value_1" value="1"><br>
+                        </div>
+                    </form>
+                    <button class="addQuestion" onclick="addResponse(forms.question)">+</button><br>
+                    <button class="submit" onclick="putQuestion(forms.question)">Enviar</button>
+                </article>
+                <script>
+                                            var counter = 2;
+
+                                            function initializeInput(object, id) {
+                                                object.setAttribute("id", "response_" + id);
+                                                object.setAttribute("type", "text");
+                                                object.setAttribute("name", "response_" + id);
+                                                return object;
+                                            }
+                                            function initializeInputPoints(object, id) {
+                                                object.setAttribute("id", "value_" + id);
+                                                object.setAttribute("type", "number");
+                                                object.setAttribute("name", "value_" + id);
+                                                object.setAttribute("value", 0);
+                                                return object;
+                                            }
+                                            function addResponse(formulario) {
+                                                let div = document.createElement("div");
+                                                div.setAttribute("id", "div_" + counter);
+                                                let label = document.createElement("label");
+                                                let label2 = document.createElement("label");
+                                                let input = document.createElement("input");
+                                                let rvalue = document.createElement("input");
+                                                let br = document.createElement("br");
+                                                let boton = document.createElement("button");
+
+                                                boton.innerHTML = "-";
+                                                boton.onclick = (event) => borrar(event);
+                                                boton.setAttribute("id", counter);
+
+                                                label.innerHTML = "Respuesta:";
+                                                label2.innerHTML = "Puntos:";
+
+                                                input = initializeInput(input, counter);
+                                                rvalue = initializeInputPoints(rvalue, counter);
+                                                div.appendChild(label);
+                                                div.appendChild(input);
+                                                div.appendChild(label2);
+                                                div.appendChild(rvalue);
+                                                div.appendChild(boton);
+                                                div.appendChild(br);
+                                                formulario.appendChild(div);
+                                                counter++;
+                                            }
+
+                                            /**
+                                             * Esta fución borra el input correspondiente al botón
+                                             * @param {type} event Objeto evento de JavaScript
+                                             * @returns {undefined}
+                                             */
+                                            function borrar(event) {
+                                                event.preventDefault();
+                                                console.log("¿Borrar línea: " + event.target.id + "?");
+                                                let div = document.getElementById("div_" + event.target.id);
+                                                div.remove();
+                                            }
+                                            function putQuestion(formulario) {
+                                                let responses = [];
+                                                let data = {
+                                                    "author": window.user,
+                                                    "title": formulario.title.value,
+                                                    "description": formulario.description.value,
+                                                    "repository": formulario.repository.value,
+                                                    "responses": []
+                                                };
+
+                                                let nodes = document.querySelectorAll("input[id^='response']");
+                                                let value_nodes = document.querySelectorAll("input[id^='value_']");
+                                                if (nodes !== null && value_nodes !== null) {
+
+                                                    let index = 0;
+                                                    for (let node of nodes) {
+                                                        console.log("Respuestas:" + node.id + " valor: " + node.value + " puntuación:" + value_nodes[index].value);
+                                                        responses.push({
+                                                            "id": index,
+                                                            "text": node.value,
+                                                            "value": value_nodes[index].value
+                                                        });
+                                                        index++;
+                                                    }
+                                                    data.responses = responses;
+                                                    xhttp.open("PUT", URL + "/question", true);
+                                                    xhttp.setRequestHeader("Content-type", "application/json");
+                                                    xhttp.send(JSON.stringify(data));
+                                                    //status.login.style.display.none;
+                                                    xhttp.onreadystatechange = function () {
+                                                        if (this.readyState === 4 && this.status === 200) {
+                                                            console.log("Recibido" + this.responseText);
+                                                            alert("Pregunta creada correctamente");
+                                                        } else if (this.readyState === 4 && this.status !== 200) {
+                                                            alert("Error al crear el repositorio");
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                </script>
+            </section>
+            <section class="oculto" id="repository">
+                <h2 class="test_title">Añadir banco de preguntas</h2>
+                <aside>
+                    <p>Con este formulario podrá añadir un repositorio identificado con su nombre de usuario y el nombre que le ponga en el formulario.</p>
+                    <p>Pulse el botón Crear cuando esté listo para enviar la información al servidor.</p>
+                </aside>
+                <article>
+                    <h3>Nuevo repositorio</h3>
+                    <form action="#" name="repository">
+                        <label>Nombre <input class="login" type="text" name="name" required></label><br>
+                    </form>
+                    <button class="submit" onclick="putRepository(window.user, forms.repository.name.value)">Crear</button>
+                </article>
+            </section>
+            <section class="oculto" id="list">
+                <h2 class="test_title">Repositorios</h2>
+
+                <aside><p>Repositorios disponibles en el servidor</p></aside>
+            </section>
+            <section class="oculto" id="about">
+                <h2 class="test_title">Acerca de la práctica 2</h2>
+                <aside><img src="./img/uja.png" alt="Logo UJA de la Universidad de Jaén"></aside>
+                <article>
+                    <h3>Práctica 2. Aplicación web cliente básica</h3>
+                    <p>En esta práctica se deberá desarrollar una aplicación web cliente (front end) a partir de añadir los elementos dinámicos necesarios a la página desarrollada en la Práctica 1 para completar las funciones típicas para la autenticación, la creación de un banco de preguntas, de las propias preguntas tipo test y de los mecanismos necesarios para poder enviar esta información a una aplicación/servicio remoto (los servicios remotos serán aportados por el profesor a través de su emulación).</p>
+                    <p>Se deberá añadir un soporte básico a la dinamización de páginas web en cliente solamente apoyándose en HTML, CSS y JavaScript.</p>
+                </article>
+
+            </section>
+        </main>  
+        <footer>
+            <p>Práctica 2. Aplicación web cliente básica</p>
+            <p>Servicios y Aplicaciones Telemáticas<br>
+                TITULACIÓN: Grado en Ingeniería de tecnologías de telecomunicación (14312020)<br>
+                TITULACIÓN: Doble Grado Ing. de tecnologías de la telecomunicación e Ing. telemática (15212007)<br>
+                TITULACIÓN: Grado en Ingeniería telemática (14512016)<br>
+                CENTRO: ESCUELA POLITÉCNICA SUPERIOR (LINARES)<br>
+                CURSO ACADÉMICO: 2019-2020<br>
+            </p>
+        </footer>
+        <script>
+                                    //Empleamos el objeto this global
+                                    function Layout() {
+                                        this.login = document.getElementById("login");
+                                        this.question = document.getElementById("question");
+                                        this.repository = document.getElementById("repository");
+                                        this.list = document.getElementById("list");
+                                        this.about = document.getElementById("about");
+
+                                    }
+                                    ;
+
+                                    this.layout = new Layout();
+
+                                    this.user = undefined;
+
+                                    var xhttp = new XMLHttpRequest();
+
+                                    var menu = [];
+
+                                    updateLogin();
+
+                                    function hideSections() {
+                                        for (let item in window.layout) {
+                                            console.log(item.innerHTML);
+                                            window.layout[item].style.display = "none";
+                                        }
+                                    }
+
+                                    function showLogin() {
+                                        let button = document.getElementById("login_button");
+                                        let form = document.getElementById("login_form");
+                                        hideSections();
+                                        window.login.style.display = "block";
+                                        if (this.user !== undefined) {
+
+                                            form.style.display = "none";
+                                            button.innerHTML = "Desconertar";
+                                            button.onclik = () => doLogin(document.forms.login.login.value, document.forms.login.password.value);
+
+                                        } else {
+                                            console.log("Login: Usuario no autenticado");
+                                            button.innerHTML = "Entrar";
+                                            button.onclik = (event) => {
+                                                window.user = undefined;
+                                                form.style.display = "block";
+                                            };
+                                        }
+
+                                    }
+
+                                    function showAbout() {
+                                        for (let item in window.layout) {
+                                            console.log(item.innerHTML);
+                                            window.layout[item].style.display = "none";
+                                        }
+                                        window.about.style.display = "block";
+
+                                    }
+                                    function showRepository() {
+                                        for (let item in window.layout) {
+                                            console.log(item.innerHTML);
+                                            window.layout[item].style.display = "none";
+                                        }
+                                        window.repository.style.display = "block";
+
+                                    }
+
+                                    function showQuestion() {
+                                        for (let item in window.layout) {
+                                            console.log(item.innerHTML);
+                                            window.layout[item].style.display = "none";
+                                        }
+                                        window.question.style.display = "block";
+
+                                    }
+                                    function showList() {
+                                        for (let item in window.layout) {
+                                            console.log(item.innerHTML);
+                                            window.layout[item].style.display = "none";
+                                        }
+                                        window.list.style.display = "block";
+
+                                        getRepository(window.user);
+
+                                    }
+
+                                    function showHiddenMenuItems() {
+                                        let menu = document.querySelectorAll("li[class ='oculto']");
+                                        console.log(menu);
+                                        for (let item of menu) {
+                                            console.log(item.innerHTML);
+                                            item.setAttribute("class", "menu");
+                                        }
+                                    }
+
+                                    function hideMenuItems() {
+                                        let menu = document.querySelectorAll("li[class ='menu']");
+                                        console.log(menu);
+                                        for (let item of menu) {
+                                            console.log(item.innerHTML);
+                                            item.setAttribute("class", "oculto");
+                                        }
+                                    }
+
+                                    function updateLogin() {
+                                        let button = document.getElementById("login_button");
+                                        let form = document.getElementById("login_form");
+
+                                        if (this.user !== undefined) {
+                                            console.log("Usuario logeado: " + this.user);
+                                            form.style.display = "none";
+                                            button.innerHTML = "Desconectar";
+                                            button.onclick = (event) => {
+                                                event.target.innerHTML = "Entrar";
+                                                let form2 = document.getElementById("login_form");
+                                                this.user = undefined;
+                                                form2.style.display = "block";
+                                                console.log("Usuario ha salido " + this.user);
+                                                updateLogin();
+                                            };
+                                        } else {
+                                            console.log("Login: Usuario no autenticado");
+                                            button.innerHTML = "Entrar";
+                                            button.onclick = (event) => doLogin(document.forms.login.login.value, document.forms.login.password.value);
+                                            hideMenuItems();
+                                        }
+                                    }
+
+                                    function doLogin(user, password) {
+                                        var xhttp = new XMLHttpRequest();
+                                        console.log("Usuario:" + user + " password" + password);
+                                        let data = {
+                                            "user": user,
+                                            "password": password
+                                        };
+
+                                        console.log("User data: " + JSON.stringify(data));
+                                        if (user !== "" && password !== "") {
+                                            xhttp.onreadystatechange = function () {
+                                                if (this.readyState === 4 && this.status === 200) {
+                                                    console.log("Recibido" + this.responseText);
+                                                    window.layout.login.style.display = "none";
+                                                    window.user = user;
+                                                    showHiddenMenuItems();
+                                                } else if (this.readyState === 4 && this.status !== 200) {
+                                                    alert("Error de autenticación");
+                                                }
+                                                updateLogin();
+                                            }
+                                            //xhttp.open("GET", URL + "/index.html", true);
+                                            //xhttp.setRequestHeader("Content-type", "application/xml-url-encoded");
+                                            // xhttp.send(null);
+
+                                            xhttp.open("POST", URL + "/login", true);
+                                            xhttp.setRequestHeader("Content-type", "application/json");
+                                            xhttp.send(JSON.stringify(data));
+                                        }
+                                    }
+
+                                    function putRepository(user, name) {
+                                        console.log("Usuario: " + user + " Nombre: " + name);
+                                        if (user !== "" && name !== "") {
+                                            let data = {"user": user, "name": name};
+
+                                            xhttp.open("PUT", URL + "/repository", true);
+                                            xhttp.setRequestHeader("Content-type", "application/json");
+                                            xhttp.send(JSON.stringify(data));
+                                            xhttp.onreadystatechange = function () {
+                                                if (this.readyState === 4) {
+                                                    switch (this.status) {
+                                                        case 200:
+                                                            console.log("Recibido" + this.responseText);
+                                                            alert("Repositorio creado correctamente");
+                                                            break;
+                                                        case 400:
+                                                            alert("Error al crear el repositorio: formato incorrecto");
+                                                            break;
+                                                        case 403:
+                                                            alert("Error al crear el repositorio: no autorizado");
+                                                            break;
+                                                        default:
+                                                            alert("Error al crear el repositorio");
+                                                            break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    function getRepository(user) {
+                                        let destino = document.getElementById("list");
+                                        let oldarticle = document.getElementById("repositorios");
+                                        if (oldarticle !== undefined && oldarticle !== null) {
+                                            destino.removeChild(oldarticle);
+                                        }
+                                        console.log("Listar repositorios para del usuario: " + user);
+
+                                        xhttp.onreadystatechange = function () {
+                                            if (this.readyState === 4 && this.status === 200) {
+                                                console.log("Recibido" + this.responseText);
+                                                try {
+                                                    let json = JSON.parse(this.responseText);
+                                                    let article = document.createElement("article");
+                                                    article.setAttribute("id", "repositorios");
+                                                    let lista = document.createElement("ul");
+
+                                                    for (let repo of json) {
+                                                        let item = document.createElement("li");
+                                                        let div = document.createElement("div");
+                                                        div.setAttribute("class", "item_repository");
+
+                                                        let button = document.createElement("button");
+                                                        button.setAttribute("id", repo._id);
+                                                        button.setAttribute("class", "delete");
+                                                        button.onclick = () => deleteRepository(repo._id);
+                                                        button.innerHTML = "Borrar";
+
+                                                        let img = document.createElement("img");
+                                                        img.src = "./img/delete.png";
+
+
+
+                                                        //button.appendChild(img);
+
+
+                                                        div.innerHTML = "<h4>" + repo.user + "</h4><p>" + repo.name + "</p>";
+                                                        item.appendChild(div);
+                                                        item.appendChild(button);
+                                                        lista.appendChild(item);
+
+                                                        console.log(repo);
+                                                    }
+                                                    article.appendChild(lista);
+                                                    destino.appendChild(article);
+                                                } catch (exception) {
+                                                    console.log(exception);
+                                                }
+
+                                            } else if (this.readyState === 4 && this.status !== 200) {
+                                                alert("Error al crear el repositorio");
+                                            }
+                                        }
+                                        //xhttp.open("GET", URL + "/repository/" + this.user, true);
+                                        xhttp.open("GET", URL + "/repository/", true);
+                                        xhttp.send();
+                                    }
+
+
+                                    function deleteRepository(id) {
+                                        console.log("DELETE: " + id);
+                                        let button = document.getElementById(id);
+                                        if (button !== undefined && button !== null) {
+                                            xhttp.onreadystatechange = function () {
+                                                if (this.readyState === 4 && this.status === 200) {
+                                                    console.log("Recibido" + this.responseText);
+                                                    try {
+                                                        button.parentElement.remove();
+                                                    } catch (exception) {
+                                                        console.log(exception);
+                                                    }
+                                                } else if (this.readyState === 4 && this.status !== 200) {
+                                                    alert("Error al borrar el repositorio");
+                                                }
+                                            }
+
+                                            xhttp.open("DELETE", URL + "/repository/" + id, true);
+                                            xhttp.send();
+                                        }
+                                    }
+
+        </script>
     </body>
 </html>

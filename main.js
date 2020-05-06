@@ -1,5 +1,6 @@
 /*
- * Servidor Node.JS para la práctica 2
+ * -- PRÁCTICA 3 --
+ * Servidor Node.JS para la práctica 3
  * ASIGNATURA: Servicios y Aplicaciones Telemáticas 
  * TITULACIÓN: Grado en Ingeniería de tecnologías de telecomunicación (14312020)
  * TITULACIÓN: Doble Grado Ing. de tecnologías de la telecomunicación e Ing. telemática (15212007)
@@ -7,24 +8,29 @@
  * CENTRO: ESCUELA POLITÉCNICA SUPERIOR (LINARES)
  * CURSO ACADÉMICO: 2019-2020
  * AUTOR: Juan Carlos Cuevas Martínez
+ * 
  */
+//Módulos a emplear en la práctica
 const http = require('http'); //Módulo de conexiones HTTP
 const express = require('express'); //Módulo de express
-const fs = require('fs'); //Módulo para la gestión de archivos.
-const path = require('path'); //Módulo para manejar rutas de archivos
-const os = require('os'); //Módulo de información relativa al sistema operativo y el host
-const dns = require('dns'); //Módulo para emplear el servicio DNS
-const {parse} = require('querystring'); //Módulo para la gestión y proceso de URLs
-
-
 const MongoClient = require('mongodb').MongoClient; // Módulo de gestión MongoDB
 const ObjectID = require('mongodb').ObjectID; // Modulo para poder emplear los objetos ID para referenciar documentos mongo
+const mongoose = require('mongoose');//Módulo para emplear Mongoose
+const bodyParser = require('body-parser');//Analiza el cuerpo de la petición POST
 
+//Para mostrar la IP
+const os = require('os'); //Módulo de información relativa al sistema operativo y el host
+const dns = require('dns'); //Módulo para emplear el servicio DNS
 
 const app = express(); //Instancia de Express
-const router = new express.Router(); //Encaminados Express para peticiones
+const router = new express.Router(); //Encaminador Express para peticiones
 app.use(router);
 const url = "mongodb://localhost:27017/examenes"; //URL de la base de datos MongoDB
+
+
+
+const jsonParser = bodyParser.json(); //application/json
+
 
 
 const DEFAULT_PORT = 8083; //Puerto del servidor por defecto
@@ -33,73 +39,105 @@ const PORT = DEFAULT_PORT; //Para poder actualizarla por los argumentos del prog
 
 //Ruta a los recursos estáticos, normalmente CSS o html sin personalizar
 app.use(express.static(__dirname + '/public'));
-/*
- * Para soportar CORS en todo tipo de métodos se filtran todas las peticiones y
- * se les añaden las cabeceras.
- * También se añade el soporte al método OPTIONS
- */
-app.use((req, res, next) => {
 
-    console.log("Petición entrante:" + req.method + " " + req.path);
+app.route("/repository")
+        .put(jsonParser,function (req, res) {
+//            let datos = "";
+//            let json;
+            console.log("PUT /repository");
+            console.log("Recibido: "+JSON.stringify(req.body));
+//            req.on("data", (trozo) => {
+//                datos += trozo;
+//                console.log("Trozo: "+trozo);
+//            });
+//
+//            req.on("end", () => {
+//                try {
+//                    json = JSON.parse(datos);
+//                    console.log("Recibido: "+JSON.stringify(json));
+//                    
+//                } catch (error) {
+//                    console.log("error " + error.toString());
+//                }
+//            });
+            res.status(200);
+            res.end();
 
-    //Se guarda la petición en el fichero de log
-    let instant = new Date(Date.now());
-    let logEntry = instant.toLocaleString("es-Es") + ";" + req.connection.remoteAddress + ";" + req.method + ";" + req.url + "\n";
-    fs.appendFile("log.txt", logEntry, (error) => {
-        if (error) {
-            console.log('\nError al añadir\nFin del registro'); //Se cierra la respuesta añadiendo el contenido como parámetro.
-        } else {
-            console.log('[LOG]+ ' + logEntry);
-        }
-    });
-    
-    //Configuración CORS
-    res.header("Access-Control-Allow-Origin", "*"); //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
-    res.header("Access-Control-Allow-Headers", "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method");
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
-    res.header("Allow", "GET, POST, OPTIONS, PUT, DELETE");
-    // authorized headers for preflight requests
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next(); //Cede el control a la siguiente parte de código que se ajuste con la petición.
+        })
+        .get(function (req, res) {
+            console.log("GET /repository");
+            let datos = [
+                {
+                    "_id": "abc1",
+                    "user": "user1",
+                    "name": "rep1"
+                }, {
+                    "_id": "qwerqwe",
+                    "user": "user1",
+                    "name": "rep2"
+                },
+                {
+                    "_id": "qwetrweerqwe",
+                    "user": "user231",
+                    "name": "Examen"
+                }
+            ];
+            res.status(200);
+            res.end(JSON.stringify(datos));
+        });
 
-    app.options('*', (req, res) => {
-        console.log("Petición OPTIONS");
-        // Métodos XHR permitidos  
-        res.header('Access-Control-Allow-Methods', 'GET, PATCH, PUT, POST, DELETE, OPTIONS');
-        res.send();
-    });
-});
+
+
+
+
+
+
+
 /**
+ * Servicio de autenticación
  * Los datos se esperan en JSON
  */
-app.post("/login", function (req, res) {
-    console.log("POST /login");
-    var body = "";
-    req.on('data', function (chunk) {
-        body += chunk;
-    });
-    req.on('end', function () {
-        console.log('POSTed: ' + body);
-        try {
-            if (authenticate(JSON.parse(body))) {
-                res.writeHead(200, {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                });
-            } else {
-                res.writeHead(403, {//Acceso denegado
-                    "Content-Type": "application/x-www-form-urlencoded"
-                });
-            }
-        } catch (error) {
-            res.writeHead(400, {//Acceso denegado
+app.post("/login", jsonParser, function (req, res) {
+    console.log("POST /login ");
+    console.log('POSTed: ' + JSON.stringify(req.body));
+    try {
+        if (authenticate(req.body)) {
+            res.writeHead(200, {
+                "Content-Type": "application/x-www-form-urlencoded"
+            });
+        } else {
+            res.writeHead(403, {//Acceso denegado
                 "Content-Type": "application/x-www-form-urlencoded"
             });
         }
-        res.end(body);
-    });
+    } catch (error) {
+        res.writeHead(400, {//Acceso denegado
+            "Content-Type": "application/x-www-form-urlencoded"
+        });
+    }
+    res.end();
 });
 
-//Servicio para subir preguntas
+/*
+ * Autenticación básica
+ * @param {type} data JSON con usuario y clave
+ * @returns {Boolean} true si se autentica, false en otro caso.
+ */
+function authenticate(data) {
+    if ((data.user === "usuario" || data.user === "usuario2") && data.password === "12345") {
+        console.log("SERVER[OK]: <" + data.user + "> se ha autenticado correctamente");
+        return true;
+    } else {
+        console.log("SERVER[ERROR]: <" + data.user + "> no se ha autenticado correctamente");
+        return false;
+    }
+}
+
+/*
+ * Servico /question
+ * put: añadir nueva pregunta
+ * get: obtener lista de preguntas
+ */
 app.route("/question")
         .put(function (req, res) {
             console.log("PUT /question");
@@ -111,11 +149,11 @@ app.route("/question")
                 console.log('PUT: ' + body);
                 try {
                     let repository = JSON.parse(body);
-                    MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, db) {
+                    MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, client) {
                         if (err)
                             throw err;
-                        var dbo = db.db("examenes");
-                        dbo.collection("question").insertOne(repository, function (err, result) {
+                        var db = client.db("examenes");
+                        db.collection("question").insertOne(repository, function (err, result) {
                             if (err) {
                                 res.writeHead(403, {//Acceso denegado
                                     'Content-Type': 'application/x-www-form-urlencoded'//,
@@ -128,7 +166,7 @@ app.route("/question")
                                 res.end(body);
                             }
                             console.log("1 question inserted: " + body);
-                            db.close();
+                            client.close();
                         });
                     });
                 } catch (error) {
@@ -142,21 +180,19 @@ app.route("/question")
         })
         .get(function (request, response) {
             console.log("GET /question");
-            MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, db) {
+            MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, client) {
                 let questions = "[";
                 if (err) {
-
                     throw err;
                 }
-                var dbo = db.db("examenes");
-                dbo.collection("question").find({}).toArray(function (err, result) {
+                var db = client.db("examenes");
+                db.collection("question").find({}).toArray(function (err, result) {
                     if (err) {
                         throw err;
                     }
-
                     questions = JSON.stringify(result);
                     console.log("Listado: " + questions);
-                    db.close();
+                    client.close();
                     response.writeHead(200, {
                         'Content-Type': 'application/json',
                         'Access-Control-Allow-Origin': '*' //Se debe especificar para emplear CORS (Cross-Origin Resource Sharing)
@@ -165,26 +201,12 @@ app.route("/question")
                 });
             });
         });
-        
-function authenticate(data) {
-    if ((data.user === "usuario" || data.user === "usuario2") && data.password === "12345") {
-        console.log("SERVER[OK]: <" + data.user + "> se ha autenticado correctamente");
-        return true;
-    } else {
-        console.log("SERVER[ERROR]: <" + data.user + "> no se ha autenticado correctamente");
-        return false;
-    }
-}
 
 
-console.log(`Servidor Node.js 
-Servicios y Aplicaciones Telemáticas.
-Curso 2019/2020
---------------------------------------`);
-//Nos quedamos con el primer parámetro de la líneas de comandos (que es el tercero. el primero el nombre del programa, el segundo la ruta
+//Inicio del programa con parámetros.
+//Nos quedamos con el primer parámetro de la líneas de comandos (que es el tercero, el primero el nombre del programa, el segundo la ruta)
 let argumentos = process.argv.slice(2);
 //El primer parámetro se convierte en el puerto
-
 console.log("Argumentos de petición:" + argumentos);
 if (argumentos.length > 0) {
     isNaN(parseInt(argumentos[0])) ? PORT = DEFAULT_PORT : PORT = parseInt(argumentos[0]);

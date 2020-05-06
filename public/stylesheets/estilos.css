@@ -1,0 +1,378 @@
+/*
+Copyright (C) 2020 everm
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+/* 
+    Created on : 28 ene. 2020, 10:43:06
+    Author     : everm
+*/
+*{
+    font-family: verdana;
+    padding: 0px;
+    margin: 0px;
+}
+
+a{
+    text-decoration: none;
+
+}
+
+header{
+    width: 100%;
+    height: 100px;
+    background-color: black;
+    overflow: hidden;
+    color:white;
+}
+
+
+nav{
+    position: relative;
+
+    width: 100%;
+    background-color: darkgray;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+}
+nav li{
+    float: left;
+
+}
+
+
+li.about{
+    float:right;
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.oculto{
+    display: none;
+}
+li a:link,li a:visited{
+    color: white;
+
+}
+
+li a:hover{
+    color: black;
+    background-color: lightgray;
+}
+
+
+main{
+    width: 100%;
+    min-height: 500px;
+    background-color: white;
+    overflow-x: hidden;
+}
+
+section{
+    width: 90%;
+    background-color: lightgray;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    border-color: black;
+    border-width: thin;
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    top: 10px;
+    margin-bottom: 10px;
+    padding: 5px;
+    overflow-y: auto;
+
+}
+section::after{
+    /* Clear floats after the columns */
+    content: "";
+    display: table;
+    clear: both;
+}
+
+article{
+    padding: 15px;
+    margin: 5px;
+
+    min-height: 150px;
+    box-sizing: border-box;
+    height: auto;
+    overflow: auto;
+    background-color: white;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px, rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+}
+article li {
+    list-style: none;
+    padding: 2px;
+    margin-bottom: 10px;
+    width: 100%;
+    position:relative;
+    overflow: hidden;
+}
+
+
+li h4{
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.delete{
+    background-color: lightgray;
+    display: inline-block;
+    padding: 2px;
+    float:left;
+    border-style: none;
+    height: 50px;
+    margin-left: 5px;
+     box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px, rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+}
+
+.delete:hover{
+    position:relative;
+    left:2px;
+    top:2px;
+    background-color: darkgray;
+}  
+
+.item_repository{
+    padding: 2px;
+    width: 80%;
+    height: 50px;
+    border-left-style: solid;
+    border-left-width: 4px;
+    border-left-color: black;
+    float: left;
+    box-sizing: border-box; 
+    background-color: lightgray;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px, rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+}
+
+.item_repository:hover{
+    position:relative;
+    left:2px;
+    top:2px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 5px 5px -2px, rgba(0, 0, 0, 0.14) 0px 5px 6px 0px, rgba(0, 0, 0, 0.12) 0px 2px 10px 0px;
+    background-color: darkgray;
+
+}
+
+.item_repository:hover button{
+    display: block;
+}
+
+div h4,div p{
+    width: 70%;
+}
+
+h4 + p{
+    font-style: italic;
+    margin-left: 10px;
+    font-size: 0.8em;
+}
+
+article h3{
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+
+aside{
+    float:right;
+    padding: 15px;
+    margin: 0px 5px;
+    width: 300px;
+    min-height: 150px;
+    box-sizing: border-box;
+    height: auto;
+    overflow: auto;
+    background-color: white;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px, rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+}
+#about{
+    overflow: auto;
+    padding: 10px;
+    height: 600px;
+}
+
+#about article{
+    width: 50%;
+    height: 80%;
+    overflow: auto;
+}
+
+#about aside{
+    width: 40%;
+}
+
+
+footer{ 
+    /*
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    */
+    padding: 10px;
+    font-size: 0.6em;
+    width: 100%;
+    background-color: lightgray;
+    text-align: center;
+
+}
+
+#about{
+    position:fixed;
+    left:25%;
+    top:25%;
+    width: 50%;
+    z-index: 1000;
+    box-shadow: 10px 10px 8px #888888;
+    height: 50%
+}
+
+
+header h1{
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+section h2{
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+
+footer > p{
+    color:whitesmoke;
+    border-color: black;
+    border: 5px;
+}
+
+.test_title{
+    color:white;
+
+}
+
+.question{
+    padding: 10px;
+    background-color: lightslategray;
+    color: white;
+}
+
+
+aside p{
+    font-style: italic;
+}
+aside img{
+    width: 80%;
+}
+
+aside a{
+    padding: 2px;
+    background-color: lightgray;
+    text-align: right;
+    font-size: 0.8em;
+    width: 100%;
+}
+
+aside a:link{
+    color:white;
+
+}
+aside a:visited{
+    color:white;
+}
+aside a:hover{
+    color:white;
+    background-color: gray;
+}
+
+input.login{
+    width: 100px;
+}
+
+input[type="submit"]{
+    padding: 5px;
+    min-width: 75px;
+    margin: 5px 0px;
+    border-style: none;
+    float:right;
+    background-color: lightgray;
+}
+
+button.submit{
+    padding: 5px;
+    min-width: 75px;
+    margin: 5px 0px;
+    border-style: none;
+    float:right;
+    background-color: lightgray;
+}
+
+button.submit:hover{
+    position:relative;
+    left:2px;
+    top:2px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 5px 5px -2px, rgba(0, 0, 0, 0.14) 0px 5px 6px 0px, rgba(0, 0, 0, 0.12) 0px 2px 10px 0px;
+    background-color: darkgray;
+
+}
+
+
+label{
+    display: inline-block;
+    min-width: 75px;
+    vertical-align: text-top;
+}
+
+
+textarea,input[type="text"] {
+    width: 70%;
+    margin-bottom: 5px;
+    margin-left: auto;
+    background-color:lightcyan;
+    vertical-align: text-top;
+}
+
+input[type="number"] {
+    width: 50px;
+    margin-bottom: 5px;
+    margin-left: auto;
+    background-color:lightcyan;
+    vertical-align: text-top;
+}
+
+.addQuestion{
+    float:left;
+}
+
+form button{
+    width: 25px;
+    float: none;
+}
+
