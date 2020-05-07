@@ -41,57 +41,82 @@ const PORT = DEFAULT_PORT; //Para poder actualizarla por los argumentos del prog
 app.use(express.static(__dirname + '/public'));
 
 app.route("/repository")
-        .put(jsonParser,function (req, res) {
-//            let datos = "";
-//            let json;
+        .put(jsonParser, function (req, res) {
             console.log("PUT /repository");
-            console.log("Recibido: "+JSON.stringify(req.body));
-//            req.on("data", (trozo) => {
-//                datos += trozo;
-//                console.log("Trozo: "+trozo);
-//            });
-//
-//            req.on("end", () => {
-//                try {
-//                    json = JSON.parse(datos);
-//                    console.log("Recibido: "+JSON.stringify(json));
-//                    
-//                } catch (error) {
-//                    console.log("error " + error.toString());
-//                }
-//            });
-            res.status(200);
-            res.end();
+            try {
+                console.log("Recibido: " + JSON.stringify(req.body));
+                MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, client) {
+                    if (err) {
+                        res.status(500);
+                        res.end();
+                    } else {
+                        let db = client.db("examenes");
+                        db.collection("repositories").insertOne(req.body, function (err, result) {
+                            if (err) {
+                                res.status(500);
+                                res.end();
+                            } else {
+                                res.status(200);
+                                res.end();
+                            }
+                        });
+                    }
+                });
+            } catch (ex) {
+                console.log("Error " + ex.toString());
+                res.status(400);
+                res.end();
+            }
 
         })
         .get(function (req, res) {
             console.log("GET /repository");
-            let datos = [
-                {
-                    "_id": "abc1",
-                    "user": "user1",
-                    "name": "rep1"
-                }, {
-                    "_id": "qwerqwe",
-                    "user": "user1",
-                    "name": "rep2"
-                },
-                {
-                    "_id": "qwetrweerqwe",
-                    "user": "user231",
-                    "name": "Examen"
+
+            MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, client) {
+                if (err) {
+                    res.status(500);
+                    res.end();
+                } else {
+                    let db = client.db("examenes");
+                    db.collection("repositories").find().toArray(function (err, result) {
+                        if (err) {
+                            res.status(500);
+                            res.end();
+                        } else {
+                            console.log("Datos leido: "+JSON.stringify(result));
+                            res.status(200);
+                            res.type("application/json");
+                            res.end(JSON.stringify(result));
+                        }
+                    });
                 }
-            ];
-            res.status(200);
-            res.end(JSON.stringify(datos));
+            });
         });
 
+app.route("/repository/:user")
+        .get(function (req, res) {
+            console.log("GET /repository");
 
-
-
-
-
-
+            MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, client) {
+                if (err) {
+                    res.status(500);
+                    res.end();
+                } else {
+                    let db = client.db("examenes");
+                    db.collection("repositories").find({"user":req.params.user}).toArray(function (err, result) {
+                        if (err) {
+                            res.status(500);
+                            res.end();
+                        } else {
+                            console.log("Datos leido: "+JSON.stringify(result));
+                            res.status(200);
+                            res.type("application/json");
+                            res.end(JSON.stringify(result));
+                        }
+                    });
+                }
+            });
+        });
 
 /**
  * Servicio de autenticación
@@ -148,12 +173,12 @@ app.route("/question")
             req.on('end', function () {
                 console.log('PUT: ' + body);
                 try {
-                    let repository = JSON.parse(body);
+                    let question = JSON.parse(body);
                     MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, client) {
                         if (err)
                             throw err;
                         var db = client.db("examenes");
-                        db.collection("question").insertOne(repository, function (err, result) {
+                        db.collection("question").insertOne(question, function (err, result) {
                             if (err) {
                                 res.writeHead(403, {//Acceso denegado
                                     'Content-Type': 'application/x-www-form-urlencoded'//,
