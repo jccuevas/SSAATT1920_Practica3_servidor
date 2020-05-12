@@ -107,33 +107,11 @@ app.route("/repository")
         });
 
 app.route("/repository/:id")
-        .delete(function(req,res){
-            console.log("DELETE /repository/"+req.params.id);
-            
-        })
-        .get(function (req, res) {
-            console.log("GET /repository");
+        .delete(function (req, res) {
+            console.log("DELETE /repository/" + req.params.id);
 
-            MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, client) {
-                if (err) {
-                    res.status(500);
-                    res.end();
-                } else {
-                    let db = client.db("examenes");
-                    db.collection("repositories").find({"user": req.params.user}).toArray(function (err, result) {
-                        if (err) {
-                            res.status(500);
-                            res.end();
-                        } else {
-                            console.log("Datos leido: " + JSON.stringify(result));
-                            res.status(200);
-                            res.type("application/json");
-                            res.end(JSON.stringify(result));
-                        }
-                    });
-                }
-            });
         });
+
 
 app.get("/show/repository", function (req, res) {
     console.log("GET /repository/show");
@@ -149,14 +127,14 @@ app.get("/show/repository", function (req, res) {
                     res.end();
                 } else {
                     console.log("Datos leido: " + JSON.stringify(result));
-                    res.render("main",{"repositories":result},function(err,html){
-                        if(err){
+                    res.render("main", {"repositories": result}, function (err, html) {
+                        if (err) {
                             res.status(500);
                             res.end();
-                        }else{
+                        } else {
                             res.status(200);
                             res.type("text/html");
-                            res.end(html);                            
+                            res.end(html);
                         }
                     });
                     //res.status(200);
