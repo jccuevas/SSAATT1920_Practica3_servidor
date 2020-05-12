@@ -18,10 +18,6 @@ const ObjectID = require('mongodb').ObjectID; // Modulo para poder emplear los o
 const mongoose = require('mongoose');//Módulo para emplear Mongoose
 const bodyParser = require('body-parser');//Analiza el cuerpo de la petición POST
 
-const Mustache = require("mustache");
-const mustacheExpress = require("mustache-express");
-
-
 //Para mostrar la IP
 const os = require('os'); //Módulo de información relativa al sistema operativo y el host
 const dns = require('dns'); //Módulo para emplear el servicio DNS
@@ -44,35 +40,31 @@ const PORT = DEFAULT_PORT; //Para poder actualizarla por los argumentos del prog
 //Ruta a los recursos estáticos, normalmente CSS o html sin personalizar
 app.use(express.static(__dirname + '/public'));
 
-//Establezco el motor de plantilla para Mustache
-app.engine("html", mustacheExpress());
 
-//Defino la extensión por defecto para las plantillas
-app.set("view engine", "html");
+mongoose.connect(url, {useNewUrlParser: true,useUnifiedTopology: true});
 
-//Ruta para las vistas mustache
-app.set("views", "./views");
+const repoSchema = new mongoose.Schema({
+    user: String,
+    name: String
+},{collection:"repositories"});
+
+var Repository = mongoose.model("Respository",repoSchema);
+
 
 app.route("/repository")
         .put(jsonParser, function (req, res) {
             console.log("PUT /repository");
             try {
                 console.log("Recibido: " + JSON.stringify(req.body));
-                MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, client) {
-                    if (err) {
+                let repo = new Repository(req.body);
+                repo.save((err,repo)=>{
+                    if(err){
                         res.status(500);
                         res.end();
-                    } else {
-                        let db = client.db("examenes");
-                        db.collection("repositories").insertOne(req.body, function (err, result) {
-                            if (err) {
-                                res.status(500);
-                                res.end();
-                            } else {
-                                res.status(200);
-                                res.end();
-                            }
-                        });
+                    }else{
+                        console.log(JSON.stringify(repo));
+                        res.status(200);
+                        res.end();
                     }
                 });
             } catch (ex) {
@@ -106,11 +98,7 @@ app.route("/repository")
             });
         });
 
-app.route("/repository/:id")
-        .delete(function(req,res){
-            console.log("DELETE /repository/"+req.params.id);
-            
-        })
+app.route("/repository/:user")
         .get(function (req, res) {
             console.log("GET /repository");
 
@@ -134,39 +122,6 @@ app.route("/repository/:id")
                 }
             });
         });
-
-app.get("/show/repository", function (req, res) {
-    console.log("GET /repository/show");
-    MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, function (err, client) {
-        if (err) {
-            res.status(500);
-            res.end();
-        } else {
-            let db = client.db("examenes");
-            db.collection("repositories").find().toArray(function (err, result) {
-                if (err) {
-                    res.status(500);
-                    res.end();
-                } else {
-                    console.log("Datos leido: " + JSON.stringify(result));
-                    res.render("main",{"repositories":result},function(err,html){
-                        if(err){
-                            res.status(500);
-                            res.end();
-                        }else{
-                            res.status(200);
-                            res.type("text/html");
-                            res.end(html);                            
-                        }
-                    });
-                    //res.status(200);
-                    //res.type("application/json");
-                    //res.end(JSON.stringify(result));
-                }
-            });
-        }
-    });
-});
 
 /**
  * Servicio de autenticación

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+Práctica 2. 
+Servicios y Aplicaciones Telemáticas
+TITULACIÓN: Grado en Ingeniería de tecnologías de telecomunicación (14312020)
+TITULACIÓN: Doble Grado Ing. de tecnologías de la telecomunicación e Ing. telemática (15212007)
+TITULACIÓN: Grado en Ingeniería telemática (14512016)
+CENTRO: ESCUELA POLITÉCNICA SUPERIOR (LINARES)
+CURSO ACADÉMICO: 2019-2020
+
+Autor: Juan Carlos Cuevas Martínez
+
+
+-->
+<html>
+    <head>
+        <title>Práctica 2. Aplicación web cliente básica</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/stylesheets/normalize.css" type="text/css">
+        <link rel="stylesheet" href="/stylesheets/estilos.css" type="text/css">
+        <script>
+            //URL configuration
+            const URL = ""; //Página en el servidor NODE.js
+        </script>
+    </head>
+    <body>
+        <header><h1>Práctica 2. Aplicación web cliente básica</h1></header>
+        <nav>
+            <ul>
+                <li><a class="menu" href="#">Listar repositorios</a></li>
+                <li class="about"><a class="menu" href="#" onclick="showAbout()">Acerca de</a></li>
+            </ul><br>
+        </nav>
+
+        <main>
+            <section id="list">
+                <h2 class="test_title">Repositorios</h2>
+                {{>show}}
+                <aside><p>Repositorios disponibles en el servidor</p></aside>
+            </section>
+
+        </main>  
+        <footer>
+            <p>Práctica 2. Aplicación web cliente básica</p>
+            <p>Servicios y Aplicaciones Telemáticas<br>
+                TITULACIÓN: Grado en Ingeniería de tecnologías de telecomunicación (14312020)<br>
+                TITULACIÓN: Doble Grado Ing. de tecnologías de la telecomunicación e Ing. telemática (15212007)<br>
+                TITULACIÓN: Grado en Ingeniería telemática (14512016)<br>
+                CENTRO: ESCUELA POLITÉCNICA SUPERIOR (LINARES)<br>
+                CURSO ACADÉMICO: 2019-2020<br>
+            </p>
+        </footer>
+
+    </body>
+</html>
+
